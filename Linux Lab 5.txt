@@ -1,0 +1,257 @@
+Create a script that asks for username and it tells you the id of the user and tells if id is greater 1000 or not?
+
+read -p "Enter the username: " usr
+uid=$(cat /etc/passwd | grep "$usr" | cut -d':' -f3)
+
+if [[  $uid > 1000 ]]
+	then
+		echo "UID is greater than 1000"
+	else
+		echo "UID is less than 1000"
+fi
+
+
+Create a script that asks for username and tells u if it exists on the system or not. If exists, then display the shell user
+
+read -p "Enter the username: " usr
+
+userinfo=$(cat /etc/passwd | grep "$usr")
+
+if [[ -n $userinfo ]] //if the variable userinfo is non zero
+	then 
+		echo "user exists"
+		shell=$(cat /etc/passwd | grep "$usr" | cut -d':' -f7)
+		echo "Shell being used by $usr is : $shell"
+	else
+		echo "user does not exist"
+fi
+
+Hint to see how the values go in the variable
+--
+[root@localhost scripts]# userinfo=$(cat /etc/passwd | grep "tom")
+[root@localhost scripts]# echo $userinfo
+tom:x:1008:1007::/home/tom:/bin/bash
+[root@localhost scripts]# userinfo=$(cat /etc/passwd | grep "tommy")
+[root@localhost scripts]# echo $userinfo
+--
+
+Assignment Q1 - Create a script that asks for a path and tells you if the entered path is a file or a dir?
+
+Exit Status of the command
+--------------------------
+Study the following example for this:
+
+[root@localhost scripts]# ls
+dir1  dir2  dir3  dir4  dir5  task2.sh  task4.sh  task5.sh  task.sh
+[root@localhost scripts]# mkdir test
+[root@localhost scripts]# echo $?
+0
+[root@localhost scripts]# mkdir dir1
+mkdir: cannot create directory ‘dir1’: File exists
+[root@localhost scripts]# echo $?
+1
+[root@localhost scripts]# mkdor test1
+bash: mkdor: command not found...
+[root@localhost scripts]# echo $?
+127
+
+Package installations in Linux
+------------------------------
+Ques - Differentiate between rpm and yum
+
+Ques - if yum is installing some package, which process runs in the background for the same?
+
+Installation of package using rpm
+---------------------------------
+rpm -ivh <packagename>.rpm
+i - install
+v - verbose
+h - print hashes to show that download is gong on
+Sample: ################################################# 100%
+
+Command to remove a package
+rpm -e <packagename>.rpm
+Command to update a package
+rpm -U <packagename>.rpm
+
+To check if a package is installed or not, we used
+rpm -qa | grep <packagename>
+--
+Example:
+[root@localhost localrepo]# rpm -qa | grep http
+httpcomponents-client-4.2.5-5.el7_0.noarch
+httpd-2.4.6-95.el7.centos.x86_64
+httpd-manual-2.4.6-95.el7.centos.noarch
+httpcomponents-core-4.2.4-6.el7.noarch
+http-parser-2.7.1-9.el7.x86_64
+httpd-tools-2.4.6-95.el7.centos.x86_64
+httpd-devel-2.4.6-95.el7.centos.x86_64
+--
+
+Installation of package using yum
+---------------------------------
+yum -y install <packagename>
+yum update
+yum upgrade
+yum remove <packagename>
+yum list   //is  used  to  list  various  information about available packages
+
+To copy packages on the machine from ISO
+----------------------------------------
+Step1 - Connect the iso from Settings of the machine
+Step2 - Mount the iso -> mount -t iso9660 /dev/sr0 /mnt
+Step3 - Create a folder and Copy media content to that specific folder
+mkdir /localrepo
+cp -rv /mnt/* /localrepo/
+Step4 - Create the repo
+Note: before repo creation , move the default repos to some other location
+#mkdir ../test
+#mv * ../test/
+
+[root@localhost localrepo]# cat /etc/yum.repos.d/local.repo 
+[centos7]
+name=centos7
+baseurl=file:///localrepo/
+enabled=1
+gpgcheck=0
+
+Step5 - createrepo /localrepo
+Step6 - yum clean all
+Step7 - yum list; yum repolist all
+
+To make it work via httpd
+-------------------------
+Modify the repo - use http://
+[root@localhost conf.d]# cat /etc/yum.repos.d/local.repo 
+[centos7]
+name=centos7
+baseurl=http:///localrepo/
+enabled=1
+gpgcheck=0
+
+Modify the /etc/httpd/conf/httpd.conf 
+--
+# DocumentRoot: The directory out of which you will serve your
+# documents. By default, all requests are taken from this directory, but
+# symbolic links and aliases may be used to point to other locations.
+#
+DocumentRoot "/localrepo"
+
+#
+# Relax access to content within /var/www.
+#
+<Directory "/localrepo">
+    AllowOverride None
+    # Allow open access:
+    Require all granted
+</Directory>
+
+# Further relax access to the default document root:
+<Directory "/localrepo">
+    #
+    # Possible values for the Options directive are "None", "All",
+    # or any combination of:
+    #   Indexes Includes FollowSymLinks SymLinksifOwnerMatch ExecCGI MultiViews
+--
+service firewalld stop
+setenforce 0
+cd /etc/httpd/conf.d/; rm -rf welcome.conf //removed welcome page
+
+Restarted httpd servivce
+Then checked via browser
+
+To access the packages from Client system
+-----------------------------------------
+Create a repo localrepo.repo
+cd /etc/yum.repos.d/
+rm -rf *
+[centos7]
+name=centos7
+baseurl=http:///<IP Adsress of server>
+enabled=1
+gpgcheck=0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+for Ubuntu/Debian 
+apt-get install <packagename>.deb
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

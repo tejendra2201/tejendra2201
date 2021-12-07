@@ -1,0 +1,241 @@
+Umask
+-----
+The primitive functions for creating files (for example, 'open' or 'mkdir') take a MODE argument, which specifies the file permissions to give the newly created file.  This mode is modified by the process's "file creation mask", or "umask", before it is used.
+
+In simple terms, it can be said that umask decides the default permissions for newly created files and directories.
+
+To see the umask value
+----------------------
+Command is: umask
+
+[root@localhost editiss]# umask
+0022
+
+By default, the values for 
+directory: 777
+file: 666
+
+To define the effective permissions, umask is subtracted and then effective permissions of a file/dir are calculated
+
+I got the permissions of a file as 644
+[root@localhost editiss]# stat -c %a file  // this command is used to fetch the permissions of a file in the numeric format
+644
+
+What happened behind the scenes?
+666
+022
+---
+644
+---
+
+I got the permissions of a folder as 755
+[root@localhost editiss]# stat -c %a folder
+755
+
+What happened behind the scenes?
+777
+022
+---
+755
+---
+
+[Task]
+Create a normal user named - alice
+and create the files by this user. Observe the defalt permissions and chnage the umask - create new files and then see the pdefault permissions.
+
+To change the umask 
+-------------------
+Command is: umask <new numeric value>
+But this is temporary.
+
+Q1 - To make the new umask permanent, what to do?
+
+Sticky Bit
+----------
+[root@localhost editiss]# mkdir drive
+[root@localhost editiss]# ls
+drive
+
+//Users on machine
+[root@localhost editiss]# cat /etc/passwd | tail -n 6
+riya:x:1003:1003::/home/riya:/bin/bash
+mayur:x:1004:1004::/home/mayur:/bin/bash
+neha:x:1005:1005::/home/neha:/bin/bash
+sameer:x:1006:1006::/home/sameer:/bin/bash
+nikhil:x:1007:1007::/home/nikhil:/bin/bash
+tom:x:1008:1007::/home/tom:/bin/bash
+
+//we gave full access to 3 users over the drive
+[root@localhost editiss]# setfacl -R -m u:sameer:rwx /root
+[root@localhost editiss]# setfacl -R -m u:nikhil:rwx /root
+[root@localhost editiss]# setfacl -R -m u:mayur:rwx /root
+
+//users logged in and added their files but sameer deleted others' files
+
+[root@localhost editiss]# su - mayur
+Last login: Tue Oct 26 08:23:53 IST 2021 on pts/0
+[mayur@localhost ~]$ cd /root/editiss/drive/ ; touch file_mayur
+[mayur@localhost drive]$ logout
+[root@localhost editiss]# su - nikhil
+[nikhil@localhost ~]$ cd /root/editiss/drive/ ; touch file_nikhil
+[nikhil@localhost drive]$ logout
+[root@localhost editiss]# su - sameer
+Last login: Mon Oct 25 08:32:34 IST 2021 on pts/0
+[sameer@localhost ~]$ cd /root/editiss/drive/ ; touch file_sameer
+[sameer@localhost drive]$ cd /root/editiss/drive/ ; rm -rf file_nikhil
+[sameer@localhost drive]$ logout
+[root@localhost editiss]# cd /root/editiss/drive/
+[root@localhost drive]# ls
+file_mayur  file_sameer
+
+//In order to stop this - we need to apply STICKY BIT
+--
+[root@localhost drive]# ls -ld /root/editiss/drive/
+drwxrwxr-x+ 2 root root 43 Oct 26 08:29 /root/editiss/drive/
+[root@localhost drive]# chmod +t /root/editiss/drive/
+[root@localhost drive]# ls -ld /root/editiss/drive/
+drwxrwxr-t+ 2 root root 43 Oct 26 08:29 /root/editiss/drive/
+--
+//After applying the sticky bit, sameer again wanted to delete mayur's file but access denied
+--
+[sameer@localhost ~]$ cd /root/editiss/drive/ 
+[sameer@localhost drive]$ ls
+file_mayur  file_sameer
+[sameer@localhost drive]$ rm -rf file_mayur 
+rm: cannot remove ‘file_mayur’: Operation not permitted
+---
+
+grep, awk, sed, cut
+-------------------
+
+grep: grep is used to print a line on the basis of a specific word or a pattern
+
+[root@localhost editiss]# cat /etc/passwd | grep 'sameer'
+sameer:x:1006:1006::/home/sameer:/bin/bash
+
+[root@localhost editiss]# cat /etc/passwd | grep 'bash'
+root:x:0:0:root:/root:/bin/bash
+lavishjhamb:x:1000:1000:Lavish Jhamb:/home/lavishjhamb:/bin/bash
+riya:x:1003:1003::/home/riya:/bin/bash
+mayur:x:1004:1004::/home/mayur:/bin/bash
+neha:x:1005:1005::/home/neha:/bin/bash
+sameer:x:1006:1006::/home/sameer:/bin/bash
+nikhil:x:1007:1007::/home/nikhil:/bin/bash
+tom:x:1008:1007::/home/tom:/bin/bash
+
+---
+File content to practice grep
+
+[root@localhost editiss]# cat info
+I like India
+I like india
+I like Mango
+I love mango
+i love mangoes
+my phone number is 9643546698
+my ip address is 192.168.23.4
+taj mahal
+TAJ MAHAL
+India is 7th largest country
+statue of unity
+Apple is good
+APPLE is fine
+apple is small
+apples are awesome
+apple hates microsoft
+
+8.8.8.8
+
+apple123
+
+-----
+Regular expression that you  need to know
+
+\d -- digits
+\w -- alphanumeric chars
+\s -- space
+
+To find ip address of a machine --> ifconfig | grep -A1 ens33 | grep inet | grep -Po '\d+\.\d+\.\d+\.\d+' | head -n1
+
+By using alias you can name any acoomand as you wish
+Syntax - alias command name you want="new command"
+--
+[root@localhost editiss]# alias myip="ifconfig | grep -A1 ens33 | grep inet | grep -Po '\d+\.\d+\.\d+\.\d+' | head -n1"
+[root@localhost editiss]# myip
+192.168.91.152
+--
+this method of creating alias is temporary.
+Q3 - To make it permanent?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
